@@ -92,15 +92,6 @@ public class aes {
 
         System.out.println("Texto cifrado (" + outputFormat + "): " + encryptedText);
 
-        // Descifrar (para validación)
-        /*cipher.init(Cipher.DECRYPT_MODE, secretKey);
-        byte[] decryptedBytes = outputFormat.equals("HEX") ?
-                cipher.doFinal(hexToBytes(encryptedText)) :
-                cipher.doFinal(Base64.getDecoder().decode(encryptedText));
-
-        String decryptedText = new String(decryptedBytes);
-        System.out.println("Texto descifrado (hash aplicado): " + decryptedText);*/
-
         // Descifrado (solo para formatos binarios posibles de decodificar)
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedBytes;
@@ -131,7 +122,7 @@ public class aes {
 
     }
     
-    // Convertir bytes a HEX
+    // Convertir de Bytes a HEX
     public static String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -140,7 +131,7 @@ public class aes {
         return sb.toString();
     }
 
-    // Convertir HEX a bytes
+    // Convertir HEX a Bytes
     public static byte[] hexToBytes(String hex) {
         int len = hex.length();
         byte[] data = new byte[len / 2];
@@ -151,21 +142,21 @@ public class aes {
         return data;
     }
 
-    // BINARIO
+    // Convertir de Bytes a Binario
     public static String bytesToBinary(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) sb.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
         return sb.toString();
     }
 
-    // OCTAL
+    // Convertir de Bytes a Octal
     public static String bytesToOctal(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) sb.append(String.format("%03o", b & 0xFF));
         return sb.toString();
     }
 
-    // UTF-8 escapado
+    // Convertir de Bytes a UTF-8 escapado
     public static String escapeUTF8(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -179,7 +170,7 @@ public class aes {
         return sb.toString();
     }
 
-    // De BINARIO a bytes
+    // Convertir de Binario a Bytes
     public static byte[] binaryToBytes(String binary) {
         int len = binary.length() / 8;
         byte[] data = new byte[len];
@@ -190,7 +181,7 @@ public class aes {
         return data;
     }
 
-    // De OCTAL a bytes
+    // Convertir de Octal a Bytes
     public static byte[] octalToBytes(String octal) {
         int len = octal.length() / 3;
         byte[] data = new byte[len];
@@ -201,7 +192,7 @@ public class aes {
         return data;
     }
 
-    // De UTF-8 escapado a bytes
+    // Convertir de UTF-8 escapado a Bytes
     public static byte[] unescapeUTF8(String escaped) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         for (int i = 0; i < escaped.length(); ) {
