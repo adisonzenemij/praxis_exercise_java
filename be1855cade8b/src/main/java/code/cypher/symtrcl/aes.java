@@ -1,7 +1,7 @@
 
 package code.cypher.symtrcl;
 
-import java.security.MessageDigest;
+import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.Scanner;
 
@@ -38,16 +38,17 @@ public class aes {
         System.out.print("Ingrese el texto a codificar: ");
         String data = scanner.nextLine();
 
-        // 3. Formato de salida
-        System.out.print("Seleccione el formato de salida (HEX/Base64): ");
+        // 2. Formato de salida
+        System.out.print("Seleccione el formato de salida (HEX, BASE64, BINARIO, OCTAL, UTF8): ");
         String outputFormat = scanner.nextLine().trim().toUpperCase();
 
-        if (!outputFormat.equals("HEX") && !outputFormat.equals("BASE64")) {
-            System.out.println("Formato no válido. Use HEX o Base64.");
+        // Validación
+        if (!outputFormat.matches("HEX|BASE64|BINARIO|OCTAL|UTF8")) {
+            System.out.println("Formato no válido.");
             return;
         }
 
-        // 4. Tamaño de clave
+        // 3. Tamaño de clave
         System.out.print("Ingrese el tamaño de la clave (128, 192 o 256): ");
         int keySize = scanner.nextInt();
         scanner.nextLine();
@@ -67,27 +68,67 @@ public class aes {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] encrypted = cipher.doFinal(data.getBytes());
 
-        String encryptedText = outputFormat.equals("HEX") ?
-                bytesToHex(encrypted) :
-                Base64.getEncoder().encodeToString(encrypted);
+        String encryptedText;
+
+        switch (outputFormat) {
+            case "HEX":
+                encryptedText = bytesToHex(encrypted);
+                break;
+            case "BASE64":
+                encryptedText = Base64.getEncoder().encodeToString(encrypted);
+                break;
+            case "BINARIO":
+                encryptedText = bytesToBinary(encrypted);
+                break;
+            case "OCTAL":
+                encryptedText = bytesToOctal(encrypted);
+                break;
+            case "UTF8":
+                encryptedText = escapeUTF8(encrypted);
+                break;
+            default:
+                encryptedText = "";
+        }
 
         System.out.println("Texto cifrado (" + outputFormat + "): " + encryptedText);
 
         // Descifrar (para validación)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        /*cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedBytes = outputFormat.equals("HEX") ?
                 cipher.doFinal(hexToBytes(encryptedText)) :
                 cipher.doFinal(Base64.getDecoder().decode(encryptedText));
 
         String decryptedText = new String(decryptedBytes);
-        System.out.println("Texto descifrado (hash aplicado): " + decryptedText);
-    }
+        System.out.println("Texto descifrado (hash aplicado): " + decryptedText);*/
 
-    // Funcion para aplicar hash
-    public static String hashText(String input, String algorithm) throws Exception {
-        MessageDigest digest = MessageDigest.getInstance(algorithm);
-        byte[] hashBytes = digest.digest(input.getBytes());
-        return bytesToHex(hashBytes);
+        // Descifrado (solo para formatos binarios posibles de decodificar)
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decryptedBytes;
+
+        switch (outputFormat) {
+            case "HEX":
+                decryptedBytes = cipher.doFinal(hexToBytes(encryptedText));
+                break;
+            case "BASE64":
+                decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+                break;
+            case "BINARIO":
+                decryptedBytes = cipher.doFinal(binaryToBytes(encryptedText));
+                break;
+            case "OCTAL":
+                decryptedBytes = cipher.doFinal(octalToBytes(encryptedText));
+                break;
+            case "UTF8":
+                decryptedBytes = cipher.doFinal(unescapeUTF8(encryptedText));
+                break;
+            default:
+                System.out.println("Descifrado no soportado para este formato.");
+                return;
+        }
+
+        String decryptedText = new String(decryptedBytes);
+        System.out.println("Texto descifrado: " + decryptedText);
+
     }
     
     // Convertir bytes a HEX
@@ -109,4 +150,71 @@ public class aes {
         }
         return data;
     }
+
+    // BINARIO
+    public static String bytesToBinary(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) sb.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
+        return sb.toString();
+    }
+
+    // OCTAL
+    public static String bytesToOctal(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) sb.append(String.format("%03o", b & 0xFF));
+        return sb.toString();
+    }
+
+    // UTF-8 escapado
+    public static String escapeUTF8(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            char c = (char) (b & 0xFF);
+            if (Character.isISOControl(c) || c > 127) {
+                sb.append(String.format("\\u%04x", (int) c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    // De BINARIO a bytes
+    public static byte[] binaryToBytes(String binary) {
+        int len = binary.length() / 8;
+        byte[] data = new byte[len];
+        for (int i = 0; i < len; i++) {
+            String byteString = binary.substring(i * 8, (i + 1) * 8);
+            data[i] = (byte) Integer.parseInt(byteString, 2);
+        }
+        return data;
+    }
+
+    // De OCTAL a bytes
+    public static byte[] octalToBytes(String octal) {
+        int len = octal.length() / 3;
+        byte[] data = new byte[len];
+        for (int i = 0; i < len; i++) {
+            String byteString = octal.substring(i * 3, (i + 1) * 3);
+            data[i] = (byte) Integer.parseInt(byteString, 8);
+        }
+        return data;
+    }
+
+    // De UTF-8 escapado a bytes
+    public static byte[] unescapeUTF8(String escaped) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int i = 0; i < escaped.length(); ) {
+            if (escaped.charAt(i) == '\\' && i + 5 < escaped.length() && escaped.charAt(i + 1) == 'u') {
+                String hex = escaped.substring(i + 2, i + 6);
+                baos.write((char) Integer.parseInt(hex, 16));
+                i += 6;
+            } else {
+                baos.write((byte) escaped.charAt(i));
+                i++;
+            }
+        }
+        return baos.toByteArray();
+    }
+
 }
