@@ -75,7 +75,7 @@ public class aes {
                 encryptedText = bytesToHex(encrypted);
                 break;
             case "BASE64":
-                encryptedText = Base64.getEncoder().encodeToString(encrypted);
+                encryptedText = bytesToBase64(encrypted);
                 break;
             case "BINARIO":
                 encryptedText = bytesToBinary(encrypted);
@@ -101,7 +101,7 @@ public class aes {
                 decryptedBytes = cipher.doFinal(hexToBytes(encryptedText));
                 break;
             case "BASE64":
-                decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+                decryptedBytes = cipher.doFinal(base64ToBytes(encryptedText));
                 break;
             case "BINARIO":
                 decryptedBytes = cipher.doFinal(binaryToBytes(encryptedText));
@@ -142,31 +142,20 @@ public class aes {
         return data;
     }
 
+    // Convertir de Bytes a Base64
+    public static String bytesToBase64(byte[] bytes) {
+        return Base64.getEncoder().encodeToString(bytes);
+    }
+
+    // Convertir de Base64 a Bytes
+    public static byte[] base64ToBytes(String base64) {
+        return Base64.getDecoder().decode(base64);
+    }
+
     // Convertir de Bytes a Binario
     public static String bytesToBinary(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) sb.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
-        return sb.toString();
-    }
-
-    // Convertir de Bytes a Octal
-    public static String bytesToOctal(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) sb.append(String.format("%03o", b & 0xFF));
-        return sb.toString();
-    }
-
-    // Convertir de Bytes a UTF-8 escapado
-    public static String escapeUTF8(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            char c = (char) (b & 0xFF);
-            if (Character.isISOControl(c) || c > 127) {
-                sb.append(String.format("\\u%04x", (int) c));
-            } else {
-                sb.append(c);
-            }
-        }
         return sb.toString();
     }
 
@@ -181,6 +170,13 @@ public class aes {
         return data;
     }
 
+    // Convertir de Bytes a Octal
+    public static String bytesToOctal(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) sb.append(String.format("%03o", b & 0xFF));
+        return sb.toString();
+    }
+
     // Convertir de Octal a Bytes
     public static byte[] octalToBytes(String octal) {
         int len = octal.length() / 3;
@@ -190,6 +186,20 @@ public class aes {
             data[i] = (byte) Integer.parseInt(byteString, 8);
         }
         return data;
+    }
+
+    // Convertir de Bytes a UTF-8 escapado
+    public static String escapeUTF8(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            char c = (char) (b & 0xFF);
+            if (Character.isISOControl(c) || c > 127) {
+                sb.append(String.format("\\u%04x", (int) c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     // Convertir de UTF-8 escapado a Bytes
