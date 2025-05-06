@@ -11,37 +11,32 @@ import javax.crypto.SecretKey;
 
 public class aes {
     public static void test() throws Exception {
+        /*String data = "ABC123";
+        
+        // Generar la clave AES
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        // (16 bytes = 128) | (24 bytes = 192) | (32 bytes = 256)
+        keyGen.init(256);
+        SecretKey secretKey = keyGen.generateKey();
+
+        // Cifrar
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] encrypted = cipher.doFinal(data.getBytes());
+        String encryptedText = Base64.getEncoder().encodeToString(encrypted);
+        System.out.println("Encrypted AES: " + encryptedText);
+
+        // Desencriptar
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedText));
+        String decryptedText = new String(decrypted);
+        System.out.println("Decrypted AES: " + decryptedText);*/
+        
         Scanner scanner = new Scanner(System.in);
 
         // 1. Ingreso de texto
         System.out.print("Ingrese el texto a codificar: ");
         String data = scanner.nextLine();
-
-        // 2. Aplicar hash solo para verificación (no cifrar el hash)
-        System.out.print("¿Desea aplicar un hash para verificación? (NINGUNO/MD2/MD5/SHA-1/SHA-224/SHA-256/SHA-384/SHA-512/SHA-512/224/SHA-512/256): ");
-        String hashOption = scanner.nextLine().trim().toUpperCase();
-
-        String hashValue = null;
-
-        switch (hashOption) {
-            case "MD2":
-            case "MD5":
-            case "SHA-1":
-            case "SHA-224":
-            case "SHA-256":
-            case "SHA-384":
-            case "SHA-512":
-            case "SHA-512/224":
-            case "SHA-512/256":
-                hashValue = hashText(data, hashOption);
-                System.out.println("Hash del texto original: " + hashValue);
-                break;
-            case "NINGUNO":
-                break;
-            default:
-                System.out.println("Opción no válida. Use una opción válida de hash.");
-                return;
-        }
 
         // 3. Formato de salida
         System.out.print("Seleccione el formato de salida (HEX/Base64): ");
@@ -67,7 +62,7 @@ public class aes {
         keyGen.init(keySize);
         SecretKey secretKey = keyGen.generateKey();
 
-        // Cifrar el texto original
+        // Cifrar
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey);
         byte[] encrypted = cipher.doFinal(data.getBytes());
@@ -78,21 +73,14 @@ public class aes {
 
         System.out.println("Texto cifrado (" + outputFormat + "): " + encryptedText);
 
-        // Descifrar
+        // Descifrar (para validación)
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         byte[] decryptedBytes = outputFormat.equals("HEX") ?
                 cipher.doFinal(hexToBytes(encryptedText)) :
                 cipher.doFinal(Base64.getDecoder().decode(encryptedText));
 
         String decryptedText = new String(decryptedBytes);
-        System.out.println("Texto descifrado: " + decryptedText);
-
-        // Validar hash si se generó
-        if (hashValue != null) {
-            String recalculatedHash = hashText(decryptedText, hashOption);
-            boolean isValid = recalculatedHash.equals(hashValue);
-            System.out.println("¿Hash válido tras descifrado? " + isValid);
-        }
+        System.out.println("Texto descifrado (hash aplicado): " + decryptedText);
     }
 
     // Funcion para aplicar hash
