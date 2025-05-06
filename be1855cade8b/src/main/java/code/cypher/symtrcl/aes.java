@@ -1,8 +1,6 @@
 
 package code.cypher.symtrcl;
 
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
 import java.util.Scanner;
 
 import javax.crypto.Cipher;
@@ -72,19 +70,19 @@ public class aes {
 
         switch (outputFormat) {
             case "HEX":
-                encryptedText = bytesToHex(encrypted);
+                encryptedText = code.codification.hex.bytesToHex(encrypted);
                 break;
             case "BASE64":
-                encryptedText = bytesToBase64(encrypted);
+                encryptedText = code.codification.base64.bytesToBase64(encrypted);
                 break;
             case "BINARIO":
-                encryptedText = bytesToBinary(encrypted);
+                encryptedText = code.codification.binary.bytesToBinary(encrypted);
                 break;
             case "OCTAL":
-                encryptedText = bytesToOctal(encrypted);
+                encryptedText = code.codification.octal.bytesToOctal(encrypted);
                 break;
             case "UTF8":
-                encryptedText = escapeUTF8(encrypted);
+                encryptedText = code.codification.utf8.escapeUTF8(encrypted);
                 break;
             default:
                 encryptedText = "";
@@ -98,19 +96,19 @@ public class aes {
 
         switch (outputFormat) {
             case "HEX":
-                decryptedBytes = cipher.doFinal(hexToBytes(encryptedText));
+                decryptedBytes = cipher.doFinal(code.codification.hex.hexToBytes(encryptedText));
                 break;
             case "BASE64":
-                decryptedBytes = cipher.doFinal(base64ToBytes(encryptedText));
+                decryptedBytes = cipher.doFinal(code.codification.base64.base64ToBytes(encryptedText));
                 break;
             case "BINARIO":
-                decryptedBytes = cipher.doFinal(binaryToBytes(encryptedText));
+                decryptedBytes = cipher.doFinal(code.codification.binary.binaryToBytes(encryptedText));
                 break;
             case "OCTAL":
-                decryptedBytes = cipher.doFinal(octalToBytes(encryptedText));
+                decryptedBytes = cipher.doFinal(code.codification.octal.octalToBytes(encryptedText));
                 break;
             case "UTF8":
-                decryptedBytes = cipher.doFinal(unescapeUTF8(encryptedText));
+                decryptedBytes = cipher.doFinal(code.codification.utf8.unescapeUTF8(encryptedText));
                 break;
             default:
                 System.out.println("Descifrado no soportado para este formato.");
@@ -120,102 +118,6 @@ public class aes {
         String decryptedText = new String(decryptedBytes);
         System.out.println("Texto descifrado: " + decryptedText);
 
-    }
-    
-    // Convertir de Bytes a HEX
-    public static String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X", b));
-        }
-        return sb.toString();
-    }
-
-    // Convertir HEX a Bytes
-    public static byte[] hexToBytes(String hex) {
-        int len = hex.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                    + Character.digit(hex.charAt(i+1), 16));
-        }
-        return data;
-    }
-
-    // Convertir de Bytes a Base64
-    public static String bytesToBase64(byte[] bytes) {
-        return Base64.getEncoder().encodeToString(bytes);
-    }
-
-    // Convertir de Base64 a Bytes
-    public static byte[] base64ToBytes(String base64) {
-        return Base64.getDecoder().decode(base64);
-    }
-
-    // Convertir de Bytes a Binario
-    public static String bytesToBinary(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) sb.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
-        return sb.toString();
-    }
-
-    // Convertir de Binario a Bytes
-    public static byte[] binaryToBytes(String binary) {
-        int len = binary.length() / 8;
-        byte[] data = new byte[len];
-        for (int i = 0; i < len; i++) {
-            String byteString = binary.substring(i * 8, (i + 1) * 8);
-            data[i] = (byte) Integer.parseInt(byteString, 2);
-        }
-        return data;
-    }
-
-    // Convertir de Bytes a Octal
-    public static String bytesToOctal(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) sb.append(String.format("%03o", b & 0xFF));
-        return sb.toString();
-    }
-
-    // Convertir de Octal a Bytes
-    public static byte[] octalToBytes(String octal) {
-        int len = octal.length() / 3;
-        byte[] data = new byte[len];
-        for (int i = 0; i < len; i++) {
-            String byteString = octal.substring(i * 3, (i + 1) * 3);
-            data[i] = (byte) Integer.parseInt(byteString, 8);
-        }
-        return data;
-    }
-
-    // Convertir de Bytes a UTF-8 escapado
-    public static String escapeUTF8(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            char c = (char) (b & 0xFF);
-            if (Character.isISOControl(c) || c > 127) {
-                sb.append(String.format("\\u%04x", (int) c));
-            } else {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
-    }
-
-    // Convertir de UTF-8 escapado a Bytes
-    public static byte[] unescapeUTF8(String escaped) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (int i = 0; i < escaped.length(); ) {
-            if (escaped.charAt(i) == '\\' && i + 5 < escaped.length() && escaped.charAt(i + 1) == 'u') {
-                String hex = escaped.substring(i + 2, i + 6);
-                baos.write((char) Integer.parseInt(hex, 16));
-                i += 6;
-            } else {
-                baos.write((byte) escaped.charAt(i));
-                i++;
-            }
-        }
-        return baos.toByteArray();
     }
 
 }
